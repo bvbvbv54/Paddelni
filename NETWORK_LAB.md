@@ -1,12 +1,15 @@
 # Padeli Hyeti: Future LAN Networking Lab
 
-This procedure is for the **next phase only**, after localhost validation. None of these network or firewall changes are performed by the application.
+This procedure is for the **next phase only**, after localhost validation. The final demonstration will use **three physical computers**: one server computer and two teammate client computers. None of these network or firewall changes are performed by the application.
 
 ## Safety and scope
 
 - Use a trusted private classroom/home LAN, never a public Wi-Fi network.
+- Use three physical computers on the same private LAN: one Flask server and two browser clients.
+- Each teammate should clone the same GitHub repository and install the same dependencies on their own computer.
 - Use dummy accounts and dummy phone numbers. Plain HTTP does not encrypt passwords or session cookies in transit.
 - Do not expose Flask's development server to the public internet or configure router port forwarding.
+- Do not substitute a single computer with multiple browser tabs for the final physical-client demonstration. Separate browser sessions are still required on the two client computers.
 - Keep Flask debug mode disabled.
 - Get permission before changing Windows Firewall rules or capturing another person's traffic.
 
@@ -56,12 +59,24 @@ Do not disable Windows Firewall. Do not create a rule for all ports or the Publi
 
 ## 4. Test the three-device workflow
 
-1. On the server PC, open `http://127.0.0.1:8000/api/health`.
-2. On each teammate PC, open `http://SERVER_IPV4:8000/api/health`. Expect status `200` and JSON with `"status": "healthy"`.
-3. Teammate 1 registers and creates a game.
-4. Teammate 2 registers, finds that game, and joins it.
-5. Teammate 1 refreshes the game details and confirms Teammate 2 appears.
-6. Demonstrate player search and feedback after both accounts share the game.
+1. On each teammate PC, clone the repository and install dependencies:
+
+```powershell
+git clone https://github.com/bvbvbv54/Paddelni.git
+cd Paddelni
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+2. On the server PC, open `http://127.0.0.1:8000/api/health`.
+3. On each teammate PC, open `http://SERVER_IPV4:8000/api/health`. Expect status `200` and JSON with `"status": "healthy"`.
+4. Teammate 1 registers and creates a game from Client Computer 1.
+5. Teammate 2 registers, finds that game, and joins it from Client Computer 2.
+6. Teammate 1 refreshes the game details and confirms Teammate 2 appears.
+7. Demonstrate player search and feedback after both accounts share the game.
+
+The `networking/two_client_smoke_test.py` script is a useful HTTP preflight because it creates independent cookie sessions, but it does not replace the required three-physical-computer browser demonstration.
 
 If clients cannot connect:
 

@@ -2,6 +2,28 @@
 
 This folder contains the networking deliverables only. It does not modify the Flask application or the Part 1 feature modules.
 
+The final demonstration is planned for three physical computers on one private LAN:
+
+- Server computer: runs Flask and owns the shared SQLite database.
+- Client computer 1: teammate browser session for Athlete 1.
+- Client computer 2: teammate browser session for Athlete 2.
+
+The smoke test below is an automated preflight. It uses independent cookie sessions in one Python process; it is not a substitute for the final two-physical-client browser demonstration.
+
+## Teammate clone setup
+
+Each teammate should clone the same repository onto their own physical computer:
+
+```powershell
+git clone https://github.com/bvbvbv54/Paddelni.git
+cd Paddelni
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+Only the server computer runs `python app.py`. Client computers use a browser and connect to the server computer's private IPv4 address.
+
 ## Two-client smoke test
 
 The standard-library script creates three dummy accounts, runs the required HTTP status scenarios, and proves that two independent cookie sessions share the same game database.
