@@ -402,6 +402,41 @@ def list_games():
     return success({"games": games, "count": len(games)}, "Games retrieved.")
 
 
+@bp.route("/query", methods=["QUERY"])
+def query_games():
+    """Optional Computer Networks bonus: a read-only HTTP QUERY request.
+
+    QUERY is intentionally kept read-only and mirrors the public game catalogue
+    returned by ``GET /api/games``.  It gives the presentation a real,
+    observable non-standard HTTP method without creating a second data model or
+    putting write operations behind an unusual verb.
+    """
+    resource = request.args.get("resource", "games").strip().casefold()
+    if resource == "capabilities":
+        return success(
+            {
+                "method": "QUERY",
+                "resources": ["games", "capabilities"],
+                "read_only": True,
+                "example": "/api/query?resource=games&available=1",
+            },
+            "QUERY request handled.",
+        )
+    if resource != "games":
+        return error(400, "invalid_query", "QUERY supports the games or capabilities resource.")
+
+    # Reuse the exact filtering and response shape of the normal game listing.
+    # This keeps QUERY demonstrably useful while avoiding a second implementation
+    # of game visibility rules.
+    result = list_games()
+    if isinstance(result, tuple):
+        return result
+    payload = result.get_json()
+    payload["data"]["method"] = "QUERY"
+    payload["message"] = "QUERY request handled; games retrieved."
+    return jsonify(payload), result.status_code
+
+
 @bp.post("/games")
 @login_required
 def create_game():

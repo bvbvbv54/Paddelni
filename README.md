@@ -122,6 +122,7 @@ State-changing requests (`POST`/`PUT`) to `/api/register`, `/api/login`, and to 
 | GET | `/api/players/<id>` | No | Public player data with average rating (phone shown only to its owner) |
 | GET | `/api/players/<id>/feedback` | No | Feedback received by a player |
 | GET | `/api/games` | No | List games: `skill_level`, `location`, `available=1` (open, not started) |
+| QUERY | `/api/query?resource=games` | No | Optional bonus: read-only game catalogue using the non-standard HTTP QUERY method; supports the same filters as `/api/games` |
 | POST | `/api/games` | Yes | Create a game (`title`, `location`, `date` YYYY-MM-DD, `time` HH:MM, `required_level`, `max_players` 2–8) |
 | GET | `/api/games/<id>` | No | Game details and participants |
 | POST | `/api/games/<id>/join` | Yes | Join an available game |
@@ -153,6 +154,9 @@ Each number is the actual HTTP status, not a value inside a 200 response.
 
 # 404 (PowerShell raises on 4xx; read the status from the exception)
 try { Invoke-WebRequest http://127.0.0.1:8000/api/games/999999 } catch { $_.Exception.Response.StatusCode.value__ }
+
+# Optional QUERY bonus (read-only, non-standard HTTP method)
+curl.exe -X QUERY "http://127.0.0.1:8000/api/query?resource=games"
 
 # 401 → log in with a wrong password using a session that holds a CSRF token
 $s = New-Object Microsoft.PowerShell.Commands.WebRequestSession

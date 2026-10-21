@@ -8,3 +8,5 @@ instance/*.db
 
 instance/secret_key
 instance/*.log
+.codex-ppt-build/
+.codex-ppt-preview/

@@ -106,7 +106,19 @@ Capture only traffic authorized for the class exercise.
 
 Because this lab uses HTTP, Wireshark can expose submitted dummy credentials and session cookies. This visibly demonstrates why real deployments require HTTPS. Do not capture or share real credentials. Redact phone numbers, cookie values, and passwords from screenshots or reports.
 
-## 6. End the lab safely
+## 6. Optional QUERY and passive MITM/security bonus
+
+Padeli Hyeti also includes a read-only non-standard HTTP method for the bonus discussion:
+
+```powershell
+curl.exe -X QUERY "http://SERVER_IPV4:8000/api/query?resource=games"
+```
+
+The server returns the public game catalogue in the normal JSON envelope and adds `"method": "QUERY"`. In Wireshark, filter on `tcp.port == 8000` and look for `QUERY /api/query?resource=games`.
+
+The security bonus is demonstrated with passive capture: the HTTP request line, headers and response code are visible to an observer on the path. Do not perform ARP spoofing or active interception on a shared Wi-Fi network. An active MITM experiment is only appropriate on an isolated lab network containing devices you own and have explicit permission to test. Use dummy accounts and redact session cookies in every screenshot.
+
+## 7. End the lab safely
 
 1. Stop Flask with `Ctrl+C`.
 2. Close Wireshark and save only the capture your instructor requires.

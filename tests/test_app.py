@@ -72,6 +72,19 @@ def test_home_and_health_check(client):
     assert response.get_json()["data"]["status"] == "healthy"
 
 
+def test_query_method_bonus_returns_read_only_game_catalogue(client):
+    response = client.open("/api/query?resource=capabilities", method="QUERY")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["success"] is True
+    assert body["data"]["method"] == "QUERY"
+    assert body["data"]["read_only"] is True
+
+    games = client.open("/api/query?resource=games", method="QUERY")
+    assert games.status_code == 200
+    assert games.get_json()["data"]["method"] == "QUERY"
+
+
 def test_successful_registration_hashes_password(app, client):
     response = register(client)
     assert response.status_code == 201
