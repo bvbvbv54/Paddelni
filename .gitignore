@@ -6,3 +6,4 @@ instance/*.sqlite3
 instance/*.db
 .coverage
 
+instance/secret_key

@@ -139,6 +139,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .badge { padding: 5px 9px; border-radius: 99px; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .badge-available { color: #08764a; background: #ddf7e9; }
 .badge-full { color: #9e3838; background: #fae5e5; }
+.badge-past { color: #5b6470; background: #eceef1; }
 .game-card h3 a:hover { color: var(--green-dark); }
 .game-meta { margin: 21px 0; }
 .game-meta div { display: grid; grid-template-columns: 75px 1fr; gap: 8px; padding: 4px 0; }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from functools import wraps
 
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
@@ -161,6 +161,9 @@ def games():
         clauses.append("g.location LIKE ? COLLATE NOCASE")
         parameters.append(f"%{location}%")
     having = "HAVING COUNT(gp.id) < g.max_players" if available_only else ""
+    if available_only:
+        clauses.append("(g.game_date || ' ' || g.game_time) > ?")
+        parameters.append(datetime.now().strftime("%Y-%m-%d %H:%M"))
     rows = get_db().execute(
         f"""
         SELECT g.*, organizer.name AS organizer_name, COUNT(gp.id) AS participant_count

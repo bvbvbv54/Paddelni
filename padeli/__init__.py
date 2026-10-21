@@ -15,10 +15,29 @@ def _api_error(status: int, code: str, message: str):
     return jsonify({"success": False, "error": {"code": code, "message": message}}), status
 
 
+def _load_or_create_secret_key(instance_path: Path) -> str:
+    """Return a random secret key that survives restarts.
+
+    The key is stored in ``instance/secret_key`` (ignored by git) so sessions stay
+    valid after a restart without shipping a hard-coded, guessable default.
+    """
+    key_file = instance_path / "secret_key"
+    if key_file.exists():
+        existing = key_file.read_text(encoding="utf-8").strip()
+        if existing:
+            return existing
+    key = secrets.token_hex(32)
+    key_file.write_text(key, encoding="utf-8")
+    try:
+        key_file.chmod(0o600)
+    except OSError:
+        pass
+    return key
+
+
 def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get("PADELI_SECRET_KEY", "local-development-key-change-before-sharing"),
         DATABASE=os.environ.get("PADELI_DATABASE", str(Path(app.instance_path) / "padeli.sqlite3")),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
@@ -29,6 +48,10 @@ def create_app(test_config: dict | None = None) -> Flask:
         app.config.update(test_config)
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    if not app.config.get("SECRET_KEY"):
+        app.config["SECRET_KEY"] = os.environ.get("PADELI_SECRET_KEY") or _load_or_create_secret_key(
+            Path(app.instance_path)
+        )
 
     from . import db
 
@@ -108,6 +131,14 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.errorhandler(Exception)
     def unexpected_error(error):
         if isinstance(error, HTTPException):
+            # Keep the JSON envelope for every API error (405, 413, ...), not only 404/500.
+            if request.path.startswith("/api/"):
+                code = (error.name or "error").lower().replace(" ", "_")
+                response, status = _api_error(error.code or 500, code, error.description or error.name)
+                allowed = getattr(error, "valid_methods", None)
+                if allowed:
+                    response.headers["Allow"] = ", ".join(allowed)
+                return response, status
             return error
         app.logger.exception("Unhandled application error")
         return internal_error(error)

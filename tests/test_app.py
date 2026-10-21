@@ -127,7 +127,8 @@ def test_invalid_login_and_nonexistent_account_return_401(client):
     assert wrong_password.get_json()["error"]["code"] == "invalid_credentials"
     unknown = login(client, "07000000000")
     assert unknown.status_code == 401
-    assert unknown.get_json()["error"]["code"] == "account_not_found"
+    # Same code and message as a wrong password, so accounts cannot be enumerated.
+    assert unknown.get_json()["error"] == wrong_password.get_json()["error"]
 
 
 def test_ambiguous_name_requires_phone(app):

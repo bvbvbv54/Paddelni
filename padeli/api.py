@@ -16,6 +16,10 @@ from .db import get_db
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 SKILL_LEVELS = ("Beginner", "Intermediate", "Advanced")
+# Digits with optional leading "+" and common separators (spaces, dashes, dots, brackets).
+PHONE_PATTERN = re.compile(r"^\+?[\d\s\-().]+$")
+# Compared against when no account matches, so a missing account costs the same time as a wrong password.
+_DUMMY_PASSWORD_HASH = generate_password_hash("padeli-timing-equaliser")
 
 
 def success(data=None, message: str = "Request completed successfully.", status: int = 200):
@@ -61,7 +65,7 @@ def validate_user_fields(data: dict, *, require_password: bool = True):
 
     if not 2 <= len(name) <= 80:
         return None, error(400, "invalid_name", "Name must be between 2 and 80 characters.")
-    if not 7 <= len(phone) <= 15:
+    if not PHONE_PATTERN.fullmatch(str(data.get("phone", "")).strip()) or not 7 <= len(phone) <= 15:
         return None, error(400, "invalid_phone", "Enter a valid phone number containing 7 to 15 digits.")
     if skill is None:
         return None, error(400, "invalid_skill_level", "Choose Beginner, Intermediate or Advanced.")
@@ -110,9 +114,34 @@ def player_dict(row, *, include_phone: bool = False) -> dict:
     return player
 
 
+def parse_game_time(value: object):
+    text = str(value or "").strip()
+    for pattern in ("%H:%M", "%H:%M:%S"):
+        try:
+            return datetime.strptime(text, pattern).time()
+        except ValueError:
+            continue
+    raise ValueError("invalid time")
+
+
+def game_has_started(game_date: str, game_time: str) -> bool:
+    """True once the scheduled start (server local time) is in the past."""
+    try:
+        start = datetime.combine(date.fromisoformat(game_date), parse_game_time(game_time))
+    except ValueError:
+        return False
+    return start <= datetime.now()
+
+
 def game_dict(row) -> dict:
     count = row["participant_count"]
     maximum = row["max_players"]
+    if game_has_started(row["game_date"], row["game_time"]):
+        status = "past"
+    elif count >= maximum:
+        status = "full"
+    else:
+        status = "available"
     return {
         "id": row["id"],
         "title": row["title"],
@@ -124,7 +153,7 @@ def game_dict(row) -> dict:
         "participant_count": count,
         "max_players": maximum,
         "available_places": max(maximum - count, 0),
-        "status": "full" if count >= maximum else "available",
+        "status": status,
         "created_at": row["created_at"],
     }
 
@@ -199,19 +228,21 @@ def login():
         return error(400, "missing_fields", "Enter your phone number or name and your password.")
 
     database = get_db()
+    rows = []
     phone = normalized_phone(identifier)
-    if 7 <= len(phone) <= 15 and any(character.isdigit() for character in identifier):
+    if PHONE_PATTERN.fullmatch(identifier) and 7 <= len(phone) <= 15:
         rows = database.execute("SELECT * FROM users WHERE phone = ?", (phone,)).fetchall()
-    else:
+    if not rows:
         rows = database.execute("SELECT * FROM users WHERE name = ? COLLATE NOCASE", (identifier,)).fetchall()
         if len(rows) > 1:
             return error(400, "ambiguous_name", "More than one player has that name. Log in with your phone number.")
 
-    if not rows:
-        return error(401, "account_not_found", "No account matches those login details.")
-    user = rows[0]
-    if not check_password_hash(user["password_hash"], password):
-        return error(401, "invalid_credentials", "The password is incorrect.")
+    user = rows[0] if rows else None
+    # One generic answer for "no such account" and "wrong password" so the login form
+    # cannot be used to discover which phone numbers are registered.
+    password_hash = user["password_hash"] if user is not None else _DUMMY_PASSWORD_HASH
+    if not check_password_hash(password_hash, password) or user is None:
+        return error(401, "invalid_credentials", "Incorrect phone number/name or password.")
 
     session.clear()
     session["user_id"] = user["id"]
@@ -283,6 +314,22 @@ def get_player(player_id: int):
     )
 
 
+@bp.get("/profile")
+@login_required
+def current_profile():
+    row = get_db().execute(
+        """
+        SELECT u.*, AVG(f.rating) AS average_rating, COUNT(f.id) AS feedback_count
+        FROM users u
+        LEFT JOIN feedback f ON f.reviewed_user_id = u.id
+        WHERE u.id = ?
+        GROUP BY u.id
+        """,
+        (g.user["id"],),
+    ).fetchone()
+    return success(player_dict(row, include_phone=True), "Your profile.")
+
+
 @bp.put("/profile")
 @login_required
 def update_profile():
@@ -335,6 +382,9 @@ def list_games():
         clauses.append("g.location LIKE ? COLLATE NOCASE")
         parameters.append(f"%{location}%")
     having = "HAVING COUNT(gp.id) < g.max_players" if available_only else ""
+    if available_only:
+        clauses.append("(g.game_date || ' ' || g.game_time) > ?")
+        parameters.append(datetime.now().strftime("%Y-%m-%d %H:%M"))
     rows = get_db().execute(
         f"""
         SELECT g.*, u.name AS organizer_name, COUNT(gp.id) AS participant_count
@@ -366,7 +416,9 @@ def create_game():
     skill = canonical_skill(data["required_level"])
     try:
         game_date = date.fromisoformat(str(data["date"]))
-        game_time = datetime.strptime(str(data["time"]), "%H:%M").time()
+        game_time = parse_game_time(data["time"])
+        if isinstance(data["max_players"], bool):
+            raise ValueError("boolean is not a player count")
         maximum = int(data["max_players"])
     except (TypeError, ValueError):
         return error(400, "invalid_game", "Enter a valid date, time and maximum player count.")
@@ -377,8 +429,8 @@ def create_game():
         return error(400, "invalid_location", "Game location must be between 2 and 120 characters.")
     if skill is None:
         return error(400, "invalid_skill_level", "Choose Beginner, Intermediate or Advanced.")
-    if game_date < date.today():
-        return error(400, "past_date", "Choose today or a future date.")
+    if datetime.combine(game_date, game_time) <= datetime.now():
+        return error(400, "past_date", "Choose a date and time in the future.")
     if not 2 <= maximum <= 8:
         return error(400, "invalid_max_players", "Maximum players must be between 2 and 8.")
 
@@ -433,10 +485,15 @@ def join_game(game_id: int):
     database = get_db()
     try:
         database.execute("BEGIN IMMEDIATE")
-        game = database.execute("SELECT id, max_players FROM games WHERE id = ?", (game_id,)).fetchone()
+        game = database.execute(
+            "SELECT id, max_players, game_date, game_time FROM games WHERE id = ?", (game_id,)
+        ).fetchone()
         if game is None:
             database.rollback()
             return error(404, "game_not_found", "That game does not exist.")
+        if game_has_started(game["game_date"], game["game_time"]):
+            database.rollback()
+            return error(409, "game_started", "This game has already started and can no longer be joined.")
         joined = database.execute(
             "SELECT 1 FROM game_participants WHERE game_id = ? AND user_id = ?", (game_id, g.user["id"])
         ).fetchone()
@@ -465,6 +522,8 @@ def join_game(game_id: int):
 def create_feedback():
     data = json_body()
     try:
+        if any(isinstance(data.get(key), bool) for key in ("game_id", "reviewed_user_id", "rating")):
+            raise ValueError("booleans are not ids or ratings")
         game_id = int(data.get("game_id", ""))
         reviewed_user_id = int(data.get("reviewed_user_id", ""))
         rating = int(data.get("rating", ""))
