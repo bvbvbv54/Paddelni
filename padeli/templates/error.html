@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ status }} · {{ title }} · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="error-page"><div class="container"><span class="error-code">{{ status }}</span><h1>{{ title }}</h1><p>{{ message }}</p><div class="hero-actions"><a class="button" href="{{ url_for('views.home') }}">Go home</a><a class="button button-secondary" href="{{ url_for('views.games') }}">Browse games</a></div></div></section>
+{% endblock %}

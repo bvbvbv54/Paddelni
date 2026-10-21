@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ player.name }} · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="page-hero compact"><div class="container"><a class="back-link" href="{{ url_for('views.players') }}">← Back to players</a></div></section>
+<section class="section profile-section">
+  <div class="container profile-layout">
+    <aside class="panel profile-summary">
+      <div class="profile-avatar">{{ player.name[:1]|upper }}</div>
+      <span class="level">{{ player.skill_level }}</span>
+      <h1>{{ player.name }}</h1>
+      <p class="location">{{ player.location or 'Location not added' }}</p>
+      <div class="rating-big">{% if player.average_rating %}<strong>{{ '%.1f'|format(player.average_rating) }}</strong><span><b>★★★★★</b><small>{{ player.feedback_count }} review{% if player.feedback_count != 1 %}s{% endif %}</small></span>{% else %}<span><b>☆☆☆☆☆</b><small>No feedback yet</small></span>{% endif %}</div>
+      {% if g.user and g.user.id == player.id %}<a class="button button-secondary button-block" href="{{ url_for('views.edit_profile') }}">Edit my profile</a>{% endif %}
+    </aside>
+    <div class="profile-content">
+      <article class="panel"><span class="eyebrow">About</span><h2>On the court</h2><p class="profile-bio">{{ player.bio or 'This player has not added a description yet.' }}</p></article>
+      <div class="content-block"><div class="section-heading row-heading"><div><span class="eyebrow">Player feedback</span><h2>What teammates say</h2></div></div>
+        {% if feedback %}<div class="feedback-list">{% for item in feedback %}<article class="feedback-card"><div class="feedback-top"><strong>{{ item.reviewer_name }}</strong><span class="stars" aria-label="{{ item.rating }} out of 5">{{ '★' * item.rating }}{{ '☆' * (5 - item.rating) }}</span></div><small>From “{{ item.game_title }}”</small><p>{{ item.comment or 'No written comment.' }}</p></article>{% endfor %}</div>{% else %}<div class="empty-state compact-empty"><h3>No feedback yet</h3><p>Feedback from shared games will appear here.</p></div>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

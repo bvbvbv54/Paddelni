@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="page-hero compact">
+  <div class="container split-heading"><div><span class="eyebrow">Player dashboard</span><h1>Hi, {{ g.user.name }}.</h1><p>Everything you need for your next match is right here.</p></div><a class="button" href="{{ url_for('views.create_game') }}">+ Create a game</a></div>
+</section>
+<section class="section section-tight">
+  <div class="container dashboard-actions">
+    <a class="quick-card" href="{{ url_for('views.players') }}"><span>⌕</span><div><strong>Find players</strong><small>Search by name, level or area</small></div><b>→</b></a>
+    <a class="quick-card" href="{{ url_for('views.games') }}"><span>◫</span><div><strong>Browse games</strong><small>See open community sessions</small></div><b>→</b></a>
+    <a class="quick-card" href="{{ url_for('views.edit_profile') }}"><span>○</span><div><strong>Manage profile</strong><small>Update your playing details</small></div><b>→</b></a>
+  </div>
+  <div class="container content-block">
+    <div class="section-heading row-heading"><div><span class="eyebrow">Your schedule</span><h2>Joined games</h2></div><a href="{{ url_for('views.games') }}">View all games →</a></div>
+    {% if games %}
+      <div class="card-grid">{% for game in games %}{% include "partials/game_card.html" %}{% endfor %}</div>
+    {% else %}
+      <div class="empty-state"><span>◇</span><h3>No games yet</h3><p>Browse available sessions or create the first one.</p><a class="button button-secondary" href="{{ url_for('views.games') }}">Browse games</a></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+

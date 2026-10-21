@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Manage profile · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="page-hero compact"><div class="container"><span class="eyebrow">Your profile</span><h1>Keep your details current</h1><p>Help other players know whether you are a good match.</p></div></section>
+<section class="section section-tight">
+  <div class="container narrow-container">
+    <form class="panel form-grid" action="{{ url_for('api.update_profile') }}" method="post" data-api-form data-endpoint="{{ url_for('api.update_profile') }}" data-method="PUT" data-reload="true">
+      <div class="field"><label for="name">Name</label><input id="name" name="name" value="{{ g.user.name }}" maxlength="80" required></div>
+      <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" value="{{ g.user.phone }}" inputmode="tel" required><small>Your number is only visible to you.</small></div>
+      <div class="field"><label for="skill_level">Skill level</label><select id="skill_level" name="skill_level" required>{% for level in skill_levels %}<option {% if g.user.skill_level == level %}selected{% endif %}>{{ level }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="location">Location</label><input id="location" name="location" value="{{ g.user.location }}" maxlength="100" placeholder="e.g. Abuja"></div>
+      <div class="field field-wide"><label for="bio">Short description</label><textarea id="bio" name="bio" maxlength="300" rows="5" placeholder="When and how do you like to play?">{{ g.user.bio }}</textarea><small><span data-character-count="bio">{{ g.user.bio|length }}</span>/300 characters</small></div>
+      <button class="button field-wide" type="submit">Save profile</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
+

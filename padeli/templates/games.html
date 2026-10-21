@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Available games · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container split-heading"><div><span class="eyebrow">Game board</span><h1>Pick your next match.</h1><p>Browse shared sessions and claim an available place.</p></div>{% if g.user %}<a class="button" href="{{ url_for('views.create_game') }}">+ Create a game</a>{% endif %}</div>
+</section>
+<section class="section section-tight">
+  <div class="container">
+    <form class="filter-bar games-filter" method="get" action="{{ url_for('views.games') }}">
+      <div class="field"><label for="skill_level">Skill level</label><select id="skill_level" name="skill_level"><option value="">All levels</option>{% for level in skill_levels %}<option {% if filters.skill_level == level %}selected{% endif %}>{{ level }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="location">Location</label><input id="location" name="location" value="{{ filters.location }}" placeholder="Club, city or area"></div>
+      <label class="check-field"><input type="checkbox" name="available" value="1" {% if filters.available %}checked{% endif %}>Available places only</label>
+      <button class="button" type="submit">Filter games</button>
+    </form>
+    <div class="results-heading"><h2>{{ games|length }} game{% if games|length != 1 %}s{% endif %}</h2>{% if filters.skill_level or filters.location or filters.available %}<a href="{{ url_for('views.games') }}">Clear filters</a>{% endif %}</div>
+    {% if games %}<div class="card-grid">{% for game in games %}{% include "partials/game_card.html" %}{% endfor %}</div>{% else %}<div class="empty-state"><span>◇</span><h3>No games found</h3><p>Adjust the filters or create a new session.</p>{% if g.user %}<a class="button" href="{{ url_for('views.create_game') }}">Create a game</a>{% endif %}</div>{% endif %}
+  </div>
+</section>
+{% endblock %}
+

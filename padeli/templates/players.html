@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Find players · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container"><span class="eyebrow">Player finder</span><h1>Find your court crew.</h1><p>Search the community by name, level or location.</p></div>
+</section>
+<section class="section section-tight">
+  <div class="container">
+    <form class="filter-bar" method="get" action="{{ url_for('views.players') }}">
+      <div class="field"><label for="name">Player name</label><input id="name" name="name" value="{{ filters.name }}" placeholder="Search a name"></div>
+      <div class="field"><label for="skill_level">Skill level</label><select id="skill_level" name="skill_level"><option value="">All levels</option>{% for level in skill_levels %}<option {% if filters.skill_level == level %}selected{% endif %}>{{ level }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="location">Location</label><input id="location" name="location" value="{{ filters.location }}" placeholder="City or area"></div>
+      <button class="button" type="submit">Search players</button>
+    </form>
+    <div class="results-heading"><h2>{{ players|length }} player{% if players|length != 1 %}s{% endif %} found</h2>{% if filters.name or filters.skill_level or filters.location %}<a href="{{ url_for('views.players') }}">Clear filters</a>{% endif %}</div>
+    {% if players %}
+      <div class="card-grid player-grid">
+        {% for player in players %}
+          <article class="player-card">
+            <div class="player-avatar">{{ player.name[:1]|upper }}</div>
+            <div class="player-main"><span class="level">{{ player.skill_level }}</span><h3>{{ player.name }}</h3><p class="location">{{ player.location or 'Location not added' }}</p><p>{{ player.bio|truncate(105) if player.bio else 'Ready to meet other players and get on court.' }}</p></div>
+            <div class="rating-row">{% if player.average_rating %}<span class="stars">★</span><strong>{{ '%.1f'|format(player.average_rating) }}</strong><small>({{ player.feedback_count }} review{% if player.feedback_count != 1 %}s{% endif %})</small>{% else %}<small>New player · No feedback yet</small>{% endif %}</div>
+            <a class="card-link" href="{{ url_for('views.player_profile', player_id=player.id) }}">View profile →</a>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><span>⌕</span><h3>No matching players</h3><p>Try a different name, level or location.</p><a class="button button-secondary" href="{{ url_for('views.players') }}">Reset search</a></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+

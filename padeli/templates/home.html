@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Padeli Hyeti · Find your next match{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">Your local padel community</span>
+      <h1>Good games start with the <em>right players.</em></h1>
+      <p class="hero-lead">Discover nearby players, create a session, and get a game going—all from one simple place.</p>
+      <div class="hero-actions">
+        {% if g.user %}
+          <a class="button" href="{{ url_for('views.create_game') }}">Create a game</a>
+          <a class="button button-secondary" href="{{ url_for('views.games') }}">Browse games</a>
+        {% else %}
+          <a class="button" href="{{ url_for('views.register') }}">Create your profile</a>
+          <a class="button button-secondary" href="{{ url_for('views.games') }}">Explore games</a>
+        {% endif %}
+      </div>
+      <div class="hero-stats" aria-label="Community statistics">
+        <div><strong>{{ stats.players }}</strong><span>Players</span></div>
+        <div><strong>{{ stats.games }}</strong><span>Games created</span></div>
+        <div><strong>3</strong><span>Skill levels</span></div>
+      </div>
+    </div>
+    <div class="court-card" aria-label="Padel court illustration">
+      <div class="court-lines"><span class="court-net"></span><span class="court-ball"></span></div>
+      <div class="floating-card floating-one"><span class="avatar">AM</span><div><strong>Match ready</strong><small>2 places available</small></div></div>
+      <div class="floating-card floating-two"><span class="status-dot"></span><div><strong>Players nearby</strong><small>Ready to play</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-heading"><span class="eyebrow">How it works</span><h2>From search to serve in three steps</h2></div>
+    <div class="feature-grid">
+      <article class="feature-card"><span class="step">01</span><h3>Build your profile</h3><p>Share your skill level, area and a short introduction.</p></article>
+      <article class="feature-card"><span class="step">02</span><h3>Find a match</h3><p>Browse players and sessions that fit your level and location.</p></article>
+      <article class="feature-card"><span class="step">03</span><h3>Step on court</h3><p>Join a game and see every participant in the shared session.</p></article>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

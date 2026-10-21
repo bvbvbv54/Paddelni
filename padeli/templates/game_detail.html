@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ game.title }} · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="page-hero compact"><div class="container"><a class="back-link" href="{{ url_for('views.games') }}">← Back to games</a></div></section>
+<section class="section game-detail-section">
+  <div class="container detail-layout">
+    <div class="detail-main">
+      <article class="panel game-heading-card"><div class="card-top"><span class="badge badge-{{ game.status }}">{{ game.status }}</span><span class="level">{{ game.required_level }}</span></div><h1>{{ game.title }}</h1><p>Organized by <a href="{{ url_for('views.player_profile', player_id=game.organizer.id) }}">{{ game.organizer.name }}</a></p><div class="detail-facts"><div><small>Date and time</small><strong>{{ game.date }} · {{ game.time }}</strong></div><div><small>Location</small><strong>{{ game.location }}</strong></div><div><small>Players</small><strong>{{ game.participant_count }} of {{ game.max_players }}</strong></div></div>
+        {% if not g.user %}<a class="button button-block" href="{{ url_for('views.login') }}">Log in to join</a>{% elif joined %}<div class="joined-state">✓ You are in this game</div>{% elif game.status == 'full' %}<button class="button button-block" disabled>Game is full</button>{% else %}<form data-api-form data-endpoint="{{ url_for('api.join_game', game_id=game.id) }}" data-method="POST" data-reload="true"><button class="button button-block" type="submit">Join game · {{ game.available_places }} place{% if game.available_places != 1 %}s{% endif %} left</button></form>{% endif %}
+      </article>
+    </div>
+    <aside class="panel participants-panel"><div class="section-heading"><span class="eyebrow">Line-up</span><h2>Participants</h2></div><div class="participant-list">
+      {% for participant in participants %}
+        <article class="participant"><a class="mini-avatar" href="{{ url_for('views.player_profile', player_id=participant.id) }}">{{ participant.name[:1]|upper }}</a><div><a href="{{ url_for('views.player_profile', player_id=participant.id) }}"><strong>{{ participant.name }}</strong></a><small>{{ participant.skill_level }}{% if participant.id == game.organizer.id %} · Organizer{% endif %}</small></div>
+        {% if g.user and joined and participant.id != g.user.id %}{% if participant.id in reviewed_ids %}<span class="reviewed-label">Reviewed</span>{% else %}<button class="text-action" type="button" data-feedback-toggle="feedback-{{ participant.id }}">Leave feedback</button>{% endif %}{% endif %}</article>
+        {% if g.user and joined and participant.id != g.user.id and participant.id not in reviewed_ids %}<form id="feedback-{{ participant.id }}" class="feedback-form" hidden data-api-form data-endpoint="{{ url_for('api.create_feedback') }}" data-method="POST" data-reload="true"><input type="hidden" name="game_id" value="{{ game.id }}"><input type="hidden" name="reviewed_user_id" value="{{ participant.id }}"><div class="field"><label for="rating-{{ participant.id }}">Rating for {{ participant.name }}</label><select id="rating-{{ participant.id }}" name="rating" required><option value="">Choose 1–5</option>{% for value in range(5, 0, -1) %}<option value="{{ value }}">{{ value }} star{% if value != 1 %}s{% endif %}</option>{% endfor %}</select></div><div class="field"><label for="comment-{{ participant.id }}">Comment (optional)</label><textarea id="comment-{{ participant.id }}" name="comment" maxlength="300" rows="3"></textarea></div><button class="button button-small" type="submit">Submit feedback</button></form>{% endif %}
+      {% endfor %}
+      </div>{% if game.available_places %}<p class="open-places">{{ game.available_places }} open place{% if game.available_places != 1 %}s{% endif %}</p>{% endif %}</aside>
+  </div>
+</section>
+{% endblock %}
+

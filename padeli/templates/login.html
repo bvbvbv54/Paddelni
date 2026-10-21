@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Log in · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="form-section">
+  <div class="form-shell form-shell-narrow">
+    <div class="form-intro"><span class="eyebrow">Welcome back</span><h1>Ready for another game?</h1><p>Log in with your phone number, or your name if it is unique.</p></div>
+    <form class="panel form-grid" action="{{ url_for('api.login') }}" method="post" data-api-form data-endpoint="{{ url_for('api.login') }}" data-method="POST" data-redirect="{{ url_for('views.dashboard') }}">
+      <div class="field field-wide"><label for="identifier">Phone number or name</label><input id="identifier" name="identifier" autocomplete="username" required placeholder="Your phone number"></div>
+      <div class="field field-wide"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+      <button class="button field-wide" type="submit">Log in</button>
+      <p class="form-foot field-wide">New to Padeli Hyeti? <a href="{{ url_for('views.register') }}">Create an account</a></p>
+    </form>
+  </div>
+</section>
+{% endblock %}
+

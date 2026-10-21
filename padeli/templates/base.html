@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#071a16">
+  <title>{% block title %}Padeli Hyeti{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-wrap container">
+      <a class="brand" href="{{ url_for('views.home') }}" aria-label="Padeli Hyeti home">
+        <span class="brand-mark" aria-hidden="true">P</span>
+        <span>Padeli <strong>Hyeti</strong></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">Menu</button>
+      <nav id="main-nav" class="main-nav" aria-label="Main navigation">
+        <a href="{{ url_for('views.players') }}">Find players</a>
+        <a href="{{ url_for('views.games') }}">Games</a>
+        {% if g.user %}
+          <a href="{{ url_for('views.create_game') }}">Create game</a>
+          <a href="{{ url_for('views.dashboard') }}">Dashboard</a>
+          <form class="nav-form" data-api-form data-endpoint="{{ url_for('api.logout') }}" data-method="POST" data-redirect="{{ url_for('views.home') }}">
+            <button class="link-button" type="submit">Log out</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('views.login') }}">Log in</a>
+          <a class="button button-small" href="{{ url_for('views.register') }}">Join now</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container flash-stack">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><strong>Padeli Hyeti</strong> · Find your next match.</p>
+      <p>Local client-server university project</p>
+    </div>
+  </footer>
+</body>
+</html>

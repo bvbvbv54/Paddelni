@@ -1,0 +1,11 @@
+<article class="game-card">
+  <div class="card-top"><span class="badge badge-{{ game.status }}">{{ game.status }}</span><span class="level">{{ game.required_level }}</span></div>
+  <h3><a href="{{ url_for('views.game_detail', game_id=game.id) }}">{{ game.title }}</a></h3>
+  <dl class="game-meta">
+    <div><dt>Date</dt><dd>{{ game.date }} at {{ game.time }}</dd></div>
+    <div><dt>Location</dt><dd>{{ game.location }}</dd></div>
+    <div><dt>Organizer</dt><dd>{{ game.organizer.name }}</dd></div>
+  </dl>
+  <div class="capacity"><div class="capacity-copy"><span>{{ game.participant_count }} / {{ game.max_players }} players</span><span>{{ game.available_places }} place{% if game.available_places != 1 %}s{% endif %} left</span></div><div class="capacity-track"><span style="width: {{ (game.participant_count / game.max_players * 100)|int }}%"></span></div></div>
+  <a class="card-link" href="{{ url_for('views.game_detail', game_id=game.id) }}">View game →</a>
+</article>

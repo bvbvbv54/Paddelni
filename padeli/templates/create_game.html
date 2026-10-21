@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Create a game · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="form-section">
+  <div class="form-shell">
+    <div class="form-intro"><span class="eyebrow">Organize a match</span><h1>Put a game on the board</h1><p>You automatically take the first place. Other players can discover and join the session.</p></div>
+    <form class="panel form-grid" action="{{ url_for('api.create_game') }}" method="post" data-api-form data-endpoint="{{ url_for('api.create_game') }}" data-method="POST" data-redirect-template="/games/{id}">
+      <div class="field field-wide"><label for="title">Game title</label><input id="title" name="title" maxlength="100" required placeholder="e.g. Saturday morning rally"></div>
+      <div class="field field-wide"><label for="location">Location or padel club</label><input id="location" name="location" maxlength="120" required placeholder="e.g. City Padel Club, Abuja"></div>
+      <div class="field"><label for="date">Date</label><input id="date" name="date" type="date" min="{{ today }}" required></div>
+      <div class="field"><label for="time">Time</label><input id="time" name="time" type="time" required></div>
+      <div class="field"><label for="required_level">Required skill level</label><select id="required_level" name="required_level" required><option value="">Choose a level</option>{% for level in skill_levels %}<option>{{ level }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="max_players">Maximum players</label><input id="max_players" name="max_players" type="number" min="2" max="8" value="4" required></div>
+      <button class="button field-wide" type="submit">Create game</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
+

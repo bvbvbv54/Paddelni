@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Create account · Padeli Hyeti{% endblock %}
+{% block content %}
+<section class="form-section">
+  <div class="form-shell">
+    <div class="form-intro"><span class="eyebrow">Join the community</span><h1>Create your player profile</h1><p>A few details and you will be ready to find your next game.</p></div>
+    <form class="panel form-grid" action="{{ url_for('api.register') }}" method="post" data-api-form data-endpoint="{{ url_for('api.register') }}" data-method="POST" data-redirect="{{ url_for('views.login') }}">
+      <div class="field field-wide"><label for="name">Name</label><input id="name" name="name" autocomplete="name" maxlength="80" required placeholder="e.g. Amina Musa"></div>
+      <div class="field field-wide"><label for="phone">Phone number</label><input id="phone" name="phone" autocomplete="tel" inputmode="tel" required placeholder="e.g. 08012345678"><small>Used privately to log in.</small></div>
+      <div class="field field-wide"><label for="skill_level">Padel skill level</label><select id="skill_level" name="skill_level" required><option value="">Choose your level</option>{% for level in skill_levels %}<option>{{ level }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></div>
+      <div class="field"><label for="confirm_password">Confirm password</label><input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></div>
+      <button class="button field-wide" type="submit">Create account</button>
+      <p class="form-foot field-wide">Already registered? <a href="{{ url_for('views.login') }}">Log in</a></p>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
