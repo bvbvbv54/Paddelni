@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import date, timedelta
@@ -103,7 +104,9 @@ def parse_args():
 
 def main() -> int:
     args = parse_args()
-    suffix = args.suffix or str(__import__("time").time_ns())[-8:]
+    suffix = args.suffix or str(time.time_ns())[-8:]
+    if not suffix.isdigit() or not 5 <= len(suffix) <= 8:
+        raise ValueError("--suffix must contain between 5 and 8 digits")
     # Seven-to-fifteen digit values accepted by the application's validator.
     phone_one = f"081{suffix}01"
     phone_two = f"081{suffix}02"
@@ -198,7 +201,7 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (AssertionError, RuntimeError, KeyError) as exc:
+    except (AssertionError, RuntimeError, KeyError, ValueError) as exc:
         print(f"SMOKE TEST FAILED: {exc}", file=sys.stderr)
         raise SystemExit(1)
 
